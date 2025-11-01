@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Credit Card Fraud Detection</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #5A60D7, #6DC8F3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: #333;
+    }
+
+    .card {
+      background: #fff;
+      padding: 25px 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      color: #444;
+      font-size: 22px;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    input[type="number"] {
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+      font-size: 13px;
+      transition: 0.3s;
+    }
+
+    input[type="number"]:focus {
+      border-color: #4CAF50;
+      outline: none;
+    }
+
+    .btn-container {
+      margin-top: 15px;
+    }
+
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .predict-btn {
+      background-color: #5A60D7;
+      color: white;
+    }
+
+    .predict-btn:hover {
+      background-color: #454cc4;
+    }
+
+    .autofill-btn {
+      background-color: #4CAF50;
+      color: white;
+      margin-left: 10px;
+    }
+
+    .autofill-btn:hover {
+      background-color: #3e9142;
+    }
+
+    .result-box {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+
+    .show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .danger {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>💳 Credit Card Fraud Detection</h1>
+
+    <form id="predictForm">
+      <div class="input-grid">
+        {% for i in range(1, 30) %}
+          <input type="number" name="v{{ i }}" placeholder="V{{ i }}" required>
+        {% endfor %}
+      </div>
+
+      <div class="btn-container">
+        <button type="submit" class="predict-btn">🔍 Predict</button>
+        <button type="button" class="autofill-btn" onclick="autofillValues()">🔄 Auto-Fill</button>
+      </div>
+    </form>
+
+    <div id="resultBox" class="result-box"></div>
+  </div>
+
+  <script>
+    function autofillValues() {
+      for (let i = 1; i <= 29; i++) {
+        let field = document.querySelector(`input[name="v${i}"]`);
+        if (field) {
+          let randomInt = Math.floor(Math.random() * 101) - 50; // Random int between -50 and 50
+          field.value = randomInt;
+        }
+      }
+    }
+
+    document.getElementById("predictForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const resultBox = document.getElementById("resultBox");
+      resultBox.textContent = "⏳ Predicting...";
+      resultBox.className = "result-box show";
+      resultBox.style.background = "#fff3cd";
+      resultBox.style.color = "#856404";
+
+      const formData = new FormData(e.target);
+      const formObject = Object.fromEntries(formData.entries());
+
+      const response = await fetch("{{ url_for('predict') }}", {
+        method: "POST",
+        body: new URLSearchParams(formObject),
+      });
+
+      const data = await response.json();
+
+      if (data.prediction.includes("Normal")) {
+        resultBox.textContent = "✅ Normal Transaction";
+        resultBox.className = "result-box success show";
+      } else {
+        resultBox.textContent = "⚠️ Fraudulent Transaction";
+        resultBox.className = "result-box danger show";
+      }
+    });
+  </script>
+</body>
+</html>
